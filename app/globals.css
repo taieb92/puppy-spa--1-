@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #ff9671;
+  --secondary: #845ec2;
+  --accent: #00c9a7;
+  --background: #ffffff;
+  --text: #000000;
+  --muted-text: #666666;
+  --yellow: #ffd166;
+  --green: #06d6a0;
+  --orange: #ff9671;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  font-family: "Quicksand", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+p,
+span,
+div {
+  font-size: 18px;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 14 100% 72%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 40% 57%;
+    --secondary-foreground: 0 0% 100%;
+
+    --accent: 167 100% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 39 50% 96%;
+    --muted-foreground: 0 0% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 14 100% 72%;
+
+    --radius: 2rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight;
+  }
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+  h2 {
+    @apply text-3xl;
+  }
+  h3 {
+    @apply text-2xl;
+  }
+}
+
+.btn {
+  @apply h-14 px-8 rounded-full text-lg font-bold transition-all;
+}
+
+.btn-primary {
+  @apply bg-black text-white hover:bg-black/90;
+}
+
+.btn-secondary {
+  @apply bg-white text-black border border-black hover:bg-black/5;
+}
+
+.btn-accent {
+  @apply bg-accent text-white hover:bg-accent/90;
+}
+
+.card {
+  @apply bg-white rounded-3xl shadow-sm p-6 border border-border;
+}
+
+.input {
+  @apply h-14 px-4 rounded-full border border-input bg-background text-lg;
+}
+
+.pill {
+  @apply rounded-full py-6 px-8 bg-[#FFD166];
+}
+
+.circle-image {
+  @apply rounded-full overflow-hidden aspect-square object-cover;
+}
