@@ -1,13 +1,17 @@
+export type EntryStatus = "WAITING" | "COMPLETED"
+
 export interface PuppyEntry {
-  id: string
+  id: number
   puppyName: string
   ownerName: string
   service: string
+  status: EntryStatus
+  requestedServiceDate: string
   arrivalTime: string
-  serviced: boolean
 }
 
 export interface WaitingList {
-  date: string // YYYY-MM-DD format
+  id: number
+  date: string
   entries: PuppyEntry[]
 }

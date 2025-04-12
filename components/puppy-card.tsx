@@ -1,90 +1,61 @@
 "use client"
 
-import type { PuppyEntry } from "@/lib/types"
-import { formatTime } from "@/lib/date-utils"
-import { Check, GripVertical, Scissors, Clock, User } from "lucide-react"
+import { useEffect } from "react"
+import { PuppyEntry, EntryStatus } from "@/lib/types"
 import { Button } from "./ui/button"
+import { Card, CardContent, CardFooter, CardHeader } from "./ui/card"
 import { Badge } from "./ui/badge"
+import { Clock, User } from "lucide-react"
 
-export default function PuppyCard({
-  entry,
-  onToggleServiced,
-  disableControls = false,
-}: {
+interface PuppyCardProps {
   entry: PuppyEntry
-  onToggleServiced: () => void
-  disableControls?: boolean
-}) {
-  // Determine background color based on index (for visual variety)
-  const getBgColor = () => {
-    const colors = ["#FFD166", "#06D6A0", "#FF9671"]
-    const hash = entry.id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    return colors[hash % colors.length]
-  }
+  onStatusChange: () => void
+}
+
+const statusColors = {
+  WAITING: "bg-yellow-100 text-yellow-800",
+  COMPLETED: "bg-green-100 text-green-800"
+}
+
+const statusLabels = {
+  WAITING: "Waiting",
+  COMPLETED: "Completed"
+}
+
+export default function PuppyCard({ entry, onStatusChange }: PuppyCardProps) {
+  useEffect(() => {
+    console.log("PuppyCard received entry:", entry)
+  }, [entry])
 
   return (
-    <div className={`card transition-all ${entry.serviced ? "bg-muted/30" : "bg-white"}`}>
-      <div className="flex items-center gap-6">
-        {!disableControls && (
-          <div className="text-muted-foreground">
-            <GripVertical size={24} />
-          </div>
-        )}
-
-        <div className="h-16 w-16 rounded-full flex-shrink-0" style={{ backgroundColor: getBgColor() }}>
-          <div className="h-full w-full flex items-center justify-center text-2xl font-bold">
-            {entry.puppyName.charAt(0)}
-          </div>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{entry.puppyName}</h3>
+          <Badge variant="outline" className={statusColors[entry.status]}>
+            {statusLabels[entry.status]}
+          </Badge>
         </div>
-
-        <div className="flex-1">
-          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-            <h3 className="font-bold text-xl">
-              {entry.puppyName}
-              {entry.serviced && (
-                <Badge variant="outline" className="ml-2 bg-black/5 text-black border-black/10">
-                  Serviced
-                </Badge>
-              )}
-            </h3>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-4 md:gap-6 mt-3">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <User size={16} />
-              <span>{entry.ownerName}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Scissors size={16} />
-              <span>{entry.service}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock size={16} />
-              <span>Arrived at {formatTime(entry.arrivalTime)}</span>
-            </div>
-          </div>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <User className="h-4 w-4" />
+          <span>{entry.ownerName}</span>
         </div>
-
-        {!disableControls && (
-          <Button
-            variant={entry.serviced ? "outline" : "default"}
-            size="lg"
-            className={`rounded-full min-w-[120px] ${
-              entry.serviced ? "border-black/20 text-black hover:bg-black/5" : "bg-black hover:bg-black/90 text-white"
-            }`}
-            onClick={onToggleServiced}
-          >
-            {entry.serviced ? (
-              <>Undo</>
-            ) : (
-              <>
-                <Check className="mr-2 h-5 w-5" />
-                Done
-              </>
-            )}
-          </Button>
-        )}
-      </div>
-    </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>{new Date(entry.requestedServiceDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={onStatusChange}
+        >
+          {entry.status === "WAITING" ? "Mark as Completed" : "Mark as Waiting"}
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }

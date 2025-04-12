@@ -1,30 +1,34 @@
-import type React from "react"
 import type { Metadata } from "next"
-import { Outfit } from "next/font/google"
+import { Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
 import PuppySpaLayout from "@/components/puppy-spa-layout"
 
-// Load Outfit font using Next.js font system
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-})
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Puppy Spa - Waiting List Manager",
-  description: "Manage your puppy spa waiting list with ease",
-    generator: 'v0.dev'
+  title: "Puppy Spa",
+  description: "Manage your puppy spa waiting list",
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body className={outfit.className}>
-        <PuppySpaLayout>{children}</PuppySpaLayout>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <PuppySpaLayout>
+            {children}
+          </PuppySpaLayout>
+        </ThemeProvider>
       </body>
     </html>
   )

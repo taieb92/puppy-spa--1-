@@ -1,124 +1,100 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
-import { Button } from "./ui/button"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
-import type { PuppyEntry } from "@/lib/types"
-import { getCurrentTime } from "@/lib/date-utils"
-import { PlusCircle } from "lucide-react"
-import { v4 as uuidv4 } from "uuid"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import { PuppyEntry } from "@/lib/types"
+import { waitingListService } from "@/lib/services/waiting-list"
 
-export default function AddPuppyForm({
-  onAddPuppy,
-}: {
-  onAddPuppy: (puppy: PuppyEntry) => void
-}) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [puppyName, setPuppyName] = useState("")
-  const [ownerName, setOwnerName] = useState("")
-  const [service, setService] = useState("")
+interface AddPuppyFormProps {
+  onSubmit: (entry: Omit<PuppyEntry, "id" | "status" | "rank">) => Promise<void>
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
+export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState({
+    puppyName: "",
+    ownerName: "",
+    service: "",
+    arrivalTime: new Date().toISOString().split('T')[1].substring(0, 5)
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
 
-    if (!puppyName.trim() || !ownerName.trim() || !service.trim()) {
-      return
+    try {
+      setIsSubmitting(true)
+      await onSubmit({
+        puppyName: formData.puppyName,
+        ownerName: formData.ownerName,
+        service: formData.service,
+        requestedServiceDate: new Date().toISOString().split('T')[0],
+        arrivalTime: formData.arrivalTime
+      })
+      setFormData({
+        puppyName: "",
+        ownerName: "",
+        service: "",
+        arrivalTime: new Date().toISOString().split('T')[1].substring(0, 5)
+      })
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      toast.error('Failed to add puppy')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const newPuppy: PuppyEntry = {
-      id: uuidv4(),
-      puppyName: puppyName.trim(),
-      ownerName: ownerName.trim(),
-      service: service.trim(),
-      arrivalTime: getCurrentTime(),
-      serviced: false,
-    }
-
-    onAddPuppy(newPuppy)
-
-    // Reset form
-    setPuppyName("")
-    setOwnerName("")
-    setService("")
-    setIsExpanded(false)
   }
 
   return (
-    <div className="card">
-      {!isExpanded ? (
-        <Button
-          onClick={() => setIsExpanded(true)}
-          className="w-full bg-black hover:bg-black/90 text-white h-14 text-lg rounded-full"
-        >
-          <PlusCircle className="mr-2 h-5 w-5" />
-          Add New Puppy to Waiting List
-        </Button>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <h2 className="text-2xl font-bold">Add New Puppy</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="puppyName" className="text-base">
-                Puppy Name
-              </Label>
-              <Input
-                id="puppyName"
-                value={puppyName}
-                onChange={(e) => setPuppyName(e.target.value)}
-                placeholder="Enter puppy name"
-                className="rounded-full h-14"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ownerName" className="text-base">
-                Owner Name
-              </Label>
-              <Input
-                id="ownerName"
-                value={ownerName}
-                onChange={(e) => setOwnerName(e.target.value)}
-                placeholder="Enter owner name"
-                className="rounded-full h-14"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="service" className="text-base">
-              Service Required
-            </Label>
-            <Input
-              id="service"
-              value={service}
-              onChange={(e) => setService(e.target.value)}
-              placeholder="e.g. Bath, Haircut, Nail Trimming"
-              className="rounded-full h-14"
-              required
-            />
-          </div>
-
-          <div className="flex justify-end gap-4 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsExpanded(false)}
-              className="rounded-full border-black text-black hover:bg-black/5"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="bg-black hover:bg-black/90 text-white rounded-full">
-              Add to Waiting List
-            </Button>
-          </div>
-        </form>
-      )}
-    </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="puppyName">Puppy Name</Label>
+          <Input
+            id="puppyName"
+            value={formData.puppyName}
+            onChange={(e) => setFormData(prev => ({ ...prev, puppyName: e.target.value }))}
+            required
+            placeholder="Enter puppy name"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ownerName">Owner Name</Label>
+          <Input
+            id="ownerName"
+            value={formData.ownerName}
+            onChange={(e) => setFormData(prev => ({ ...prev, ownerName: e.target.value }))}
+            required
+            placeholder="Enter owner name"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="service">Service</Label>
+          <Input
+            id="service"
+            value={formData.service}
+            onChange={(e) => setFormData(prev => ({ ...prev, service: e.target.value }))}
+            required
+            placeholder="Enter service required"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="arrivalTime">Arrival Time</Label>
+          <Input
+            id="arrivalTime"
+            type="time"
+            value={formData.arrivalTime}
+            onChange={(e) => setFormData(prev => ({ ...prev, arrivalTime: e.target.value }))}
+            required
+          />
+        </div>
+      </div>
+      <Button type="submit" disabled={isSubmitting} className="bg-black hover:bg-black/90 text-white rounded-full" size="lg">
+        {isSubmitting ? 'Adding...' : 'Add Puppy'}
+      </Button>
+    </form>
   )
 }
