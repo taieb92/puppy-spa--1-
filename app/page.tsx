@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import PuppyList from "@/components/puppy-list"
 import AddPuppyForm from "@/components/add-puppy-form"
 import { waitingListService } from "@/lib/services/waiting-list"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export default function Home() {
   const [waitingList, setWaitingList] = useState<WaitingList | null>(null)
@@ -166,18 +167,13 @@ export default function Home() {
           />
         </div>
       ) : (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">
-            No active waiting list for today
-          </p>
-          <Button 
-            onClick={handleCreateNewDay} 
-            disabled={isCreating}
-            className="bg-black text-white rounded-full px-6 py-3 flex items-center gap-2"
-          >
-            {isCreating ? 'Creating...' : 'Start New Day'}
-          </Button>
-        </div>
+        <EmptyState
+          title="No Active Waiting List"
+          description="Start a new day to begin managing your puppy spa appointments. Create a waiting list to track appointments and manage your schedule efficiently."
+          buttonText="Start New Day"
+          onButtonClick={handleCreateNewDay}
+          isLoading={isCreating}
+        />
       )}
     </main>
   )
