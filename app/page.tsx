@@ -149,6 +149,7 @@ export default function Home() {
           <Button 
             onClick={handleCreateNewDay} 
             disabled={isCreating}
+            className="bg-black text-white rounded-full px-6 py-3 flex items-center gap-2"
           >
             {isCreating ? 'Creating...' : 'Start New Day'}
           </Button>
@@ -169,7 +170,11 @@ export default function Home() {
           <p className="text-muted-foreground mb-4">
             No active waiting list for today
           </p>
-          <Button onClick={handleCreateNewDay} disabled={isCreating}>
+          <Button 
+            onClick={handleCreateNewDay} 
+            disabled={isCreating}
+            className="bg-black text-white rounded-full px-6 py-3 flex items-center gap-2"
+          >
             {isCreating ? 'Creating...' : 'Start New Day'}
           </Button>
         </div>

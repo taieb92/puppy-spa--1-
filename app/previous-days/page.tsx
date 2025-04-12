@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import PuppyList from "@/components/puppy-list"
 import AddPuppyForm from "@/components/add-puppy-form"
-import { Calendar, ChevronLeft, Plus } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { waitingListService } from "@/lib/services/waiting-list"
 import Link from "next/link"
 
@@ -19,26 +19,25 @@ export default function PreviousDaysPage() {
   const [showAddForm, setShowAddForm] = useState(false)
 
   useEffect(() => {
-    loadMonthData()
+    const year = currentMonth.getFullYear()
+    const month = String(currentMonth.getMonth() + 1).padStart(2, '0')
+    loadMonthData(`${year}-${month}`)
   }, [currentMonth])
 
-  const loadMonthData = async () => {
+  const loadMonthData = async (month: string) => {
     try {
-      setIsLoading(true)
-      const year = currentMonth.getFullYear()
-      const month = String(currentMonth.getMonth() + 1).padStart(2, '0')
-      const { data, error } = await waitingListService.getListsByMonth(`${year}-${month}`)
-      
+      const { data, error } = await waitingListService.getListsByMonth(month)
       if (error) {
-        throw new Error(error)
+        console.error('Error loading month data:', error)
+        return
       }
-
-      setDaysWithLists(data || [])
+      
+      if (data?.waitingLists) {
+        const dates = data.waitingLists.map(list => list.date)
+        setDaysWithLists(dates)
+      }
     } catch (error) {
       console.error('Error loading month data:', error)
-      toast.error('Failed to load month data')
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -108,8 +107,51 @@ export default function PreviousDaysPage() {
   }
 
   const isDateWithData = (date: string) => {
-    return daysWithLists.includes(date)
+    return Array.isArray(daysWithLists) && daysWithLists.includes(date)
   }
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev)
+      newDate.setMonth(prev.getMonth() - 1)
+      return newDate
+    })
+  }
+
+  const handleNextMonth = () => {
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev)
+      newDate.setMonth(prev.getMonth() + 1)
+      return newDate
+    })
+  }
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const firstDayOfMonth = new Date(year, month, 1).getDay()
+    
+    const days = []
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(null)
+    }
+    
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      const day = String(i).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = date.getFullYear()
+      const dateString = `${year}-${month}-${day}`
+      days.push(dateString)
+    }
+    
+    return days
+  }
+
+  const days = getDaysInMonth(currentMonth)
+  const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })
 
   const handleAddPuppy = async (entry: Omit<PuppyEntry, "id" | "status" | "rank">) => {
     try {
@@ -159,44 +201,48 @@ export default function PreviousDaysPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="card">
-          <h2 className="text-2xl font-bold mb-6">Select a Date</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Select a Date</h2>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="font-medium">{monthName}</span>
+              <Button variant="outline" size="icon" onClick={handleNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           <div className="grid grid-cols-7 gap-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div key={day} className="text-center font-medium text-sm text-muted-foreground">
                 {day}
               </div>
             ))}
-            {Array.from({ length: 35 }).map((_, index) => {
-              const date = new Date(currentMonth)
-              date.setDate(index - date.getDay() + 1)
-              const dateString = date.toISOString().split('T')[0]
-              const isCurrentMonth = date.getMonth() === currentMonth.getMonth()
-              
-              return (
-                <div
-                  key={index}
-                  className={`aspect-square p-2 rounded-lg border ${
-                    !isCurrentMonth
-                      ? 'bg-transparent border-transparent'
-                      : isDateWithData(dateString)
-                      ? 'bg-primary/10 border-primary cursor-pointer hover:bg-primary/20'
-                      : 'bg-muted/50 border-border cursor-not-allowed'
-                  }`}
-                  onClick={() => isCurrentMonth && isDateWithData(dateString) && handleDateSelect(dateString)}
-                >
-                  {isCurrentMonth && (
-                    <div className="h-full flex flex-col items-center justify-center">
-                      <span className="text-sm font-medium">
-                        {date.getDate()}
-                      </span>
-                      {isDateWithData(dateString) && (
-                        <Calendar className="h-4 w-4 mt-1 text-primary" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+            {days.map((date, index) => (
+              <div
+                key={index}
+                className={`aspect-square p-2 rounded-lg border ${
+                  date === null
+                    ? 'bg-transparent'
+                    : isDateWithData(date)
+                    ? 'bg-primary/10 border-primary cursor-pointer hover:bg-primary/20'
+                    : 'bg-muted/50 border-border cursor-not-allowed'
+                }`}
+                onClick={() => date && isDateWithData(date) && handleDateSelect(date)}
+              >
+                {date && (
+                  <div className="h-full flex flex-col items-center justify-center">
+                    <span className="text-sm font-medium">
+                      {new Date(date).getDate()}
+                    </span>
+                    {isDateWithData(date) && (
+                      <Calendar className="h-4 w-4 mt-1 text-primary" />
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
           <div className="mt-6 text-sm">
             <div className="flex items-center gap-2">

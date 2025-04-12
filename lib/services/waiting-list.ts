@@ -54,7 +54,7 @@ export const waitingListService = {
   // Entry operations
   createEntry: async (entry: Omit<PuppyEntry, "id" | "status" | "rank"> & { waitingListId: number }): Promise<ApiResponse<PuppyEntry>> => {
     try {
-      const response = await fetch(`${BASE_URL}/waiting-list-entries`, {
+      const response = await fetch(`${BASE_URL}/entries`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ export const waitingListService = {
 
   getEntriesByListId: async (listId: number): Promise<ApiResponse<PuppyEntry[]>> => {
     try {
-      const response = await fetch(`${BASE_URL}/waiting-list-entries/list/${listId}`)
+      const response = await fetch(`${BASE_URL}/entries/list?listId=${listId}`)
 
       if (!response.ok) {
         throw new Error(`Failed to get entries: ${response.statusText}`)
@@ -102,7 +102,7 @@ export const waitingListService = {
 
   updateEntryStatus: async (entryId: number, status: "WAITING" | "COMPLETED"): Promise<ApiResponse<PuppyEntry>> => {
     try {
-      const response = await fetch(`${BASE_URL}/waiting-list-entries/${entryId}/status`, {
+      const response = await fetch(`${BASE_URL}/entries/${entryId}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +126,7 @@ export const waitingListService = {
 
   updateEntryRank: async (entryId: number, rank: number): Promise<ApiResponse<PuppyEntry>> => {
     try {
-      const response = await fetch(`${BASE_URL}/waiting-list-entries/${entryId}/rank`, {
+      const response = await fetch(`${BASE_URL}/entries/${entryId}/rank`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -149,9 +149,9 @@ export const waitingListService = {
   },
 
   // Search operations
-  searchEntries: async (query: string): Promise<ApiResponse<{ entry: PuppyEntry; list: WaitingList }[]>> => {
+  searchEntries: async (query: string): Promise<ApiResponse<PuppyEntry[]>> => {
     try {
-      const response = await fetch(`${BASE_URL}/search/entries?q=${encodeURIComponent(query)}`)
+      const response = await fetch(`${BASE_URL}/entries/list?q=${encodeURIComponent(query)}`)
 
       if (!response.ok) {
         throw new Error(`Failed to search entries: ${response.statusText}`)
@@ -167,19 +167,17 @@ export const waitingListService = {
     }
   },
 
-  getListsByMonth: async (month: string): Promise<ApiResponse<string[]>> => {
+  async getListsByMonth(month: string): Promise<{ data: { month: string; waitingLists: { id: number; date: string; maxCapacity: number; currentCapacity: number }[] } | null; error: string | null }> {
     try {
-      const response = await fetch(`/api/waiting-lists/month/${month}`)
-      const data = await response.json()
-      
+      const response = await fetch(`${BASE_URL}/waiting-lists/month/${month}`)
       if (!response.ok) {
-        return { data: [], error: data.error || 'Failed to fetch waiting lists for month' }
+        throw new Error('Failed to fetch waiting lists by month')
       }
-      
-      return { data: data || [] }
+      const data = await response.json()
+      return { data, error: null }
     } catch (error) {
-      console.error('Error fetching waiting lists for month:', error)
-      return { data: [], error: 'Failed to fetch waiting lists for month' }
+      console.error('Error fetching waiting lists by month:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Failed to fetch waiting lists by month' }
     }
   },
 } 

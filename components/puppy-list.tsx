@@ -113,7 +113,7 @@ export default function PuppyList({ entries, onUpdateList, onUpdateStatus }: Pup
         </div>
       ) : (
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="appointments" isDropDisabled={false}>
+          <Droppable droppableId="appointments" isCombineEnabled={false}>
             {(provided) => (
               <div 
                 {...provided.droppableProps} 

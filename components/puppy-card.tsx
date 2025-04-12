@@ -9,7 +9,8 @@ import { Clock, User } from "lucide-react"
 
 interface PuppyCardProps {
   entry: PuppyEntry
-  onStatusChange: () => void
+  onStatusChange?: () => void
+  disableControls?: boolean
 }
 
 const statusColors = {
@@ -22,7 +23,7 @@ const statusLabels = {
   COMPLETED: "Completed"
 }
 
-export default function PuppyCard({ entry, onStatusChange }: PuppyCardProps) {
+export default function PuppyCard({ entry, onStatusChange, disableControls }: PuppyCardProps) {
   useEffect(() => {
     console.log("PuppyCard received entry:", entry)
   }, [entry])
@@ -44,18 +45,20 @@ export default function PuppyCard({ entry, onStatusChange }: PuppyCardProps) {
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span>{new Date(entry.requestedServiceDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span>{new Date(entry.arrivalTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
       </CardContent>
-      <CardFooter>
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={onStatusChange}
-        >
-          {entry.status === "WAITING" ? "Mark as Completed" : "Mark as Waiting"}
-        </Button>
-      </CardFooter>
+      {!disableControls && onStatusChange && (
+        <CardFooter>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={onStatusChange}
+          >
+            {entry.status === "WAITING" ? "Mark as Completed" : "Mark as Waiting"}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }

@@ -6,23 +6,35 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import type { PuppyEntry, WaitingList } from "@/lib/types"
-import { searchAllWaitingLists } from "@/lib/storage-utils"
 import { formatDate } from "@/lib/date-utils"
 import { ChevronLeft, Search } from "lucide-react"
 import Link from "next/link"
 import PuppyCard from "@/components/puppy-card"
+import { waitingListService } from "@/lib/services/waiting-list"
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [searchResults, setSearchResults] = useState<{ entry: PuppyEntry; list: WaitingList }[]>([])
+  const [searchResults, setSearchResults] = useState<PuppyEntry[]>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (searchTerm.trim().length === 0) return
 
-    const results = searchAllWaitingLists(searchTerm)
-    setSearchResults(results)
-    setHasSearched(true)
+    try {
+      setIsLoading(true)
+      const { data, error } = await waitingListService.searchEntries(searchTerm)
+      if (error) {
+        throw new Error(error)
+      }
+      setSearchResults(data)
+      setHasSearched(true)
+    } catch (error) {
+      console.error('Error searching entries:', error)
+      setSearchResults([])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -53,9 +65,14 @@ export default function SearchPage() {
             onKeyDown={handleKeyDown}
             className="flex-1 rounded-full h-14"
           />
-          <Button onClick={handleSearch} className="bg-black hover:bg-black/90 text-white rounded-full" size="lg">
+          <Button 
+            onClick={handleSearch} 
+            className="bg-black hover:bg-black/90 text-white rounded-full" 
+            size="lg"
+            disabled={isLoading}
+          >
             <Search className="mr-2 h-5 w-5" />
-            Search
+            {isLoading ? 'Searching...' : 'Search'}
           </Button>
         </div>
       </div>
@@ -68,10 +85,12 @@ export default function SearchPage() {
 
           {searchResults.length > 0 ? (
             <div className="space-y-6">
-              {searchResults.map((result, index) => (
+              {searchResults.map((entry, index) => (
                 <div key={index} className="card">
-                  <div className="mb-3 text-base font-medium">Visit Date: {formatDate(result.list.date)}</div>
-                  <PuppyCard entry={result.entry} onToggleServiced={() => {}} disableControls={true} />
+                  <div className="mb-3 text-base font-medium">
+                    Visit Date: {formatDate(new Date(entry.arrivalTime).toISOString().split('T')[0])}
+                  </div>
+                  <PuppyCard entry={entry} disableControls={true} />
                 </div>
               ))}
             </div>
