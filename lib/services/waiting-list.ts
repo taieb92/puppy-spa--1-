@@ -1,6 +1,6 @@
 import type { PuppyEntry, WaitingList } from "@/lib/types"
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://159.89.31.47:3000"
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL 
 
 interface ApiResponse<T> {
   data: T | null
@@ -59,22 +59,32 @@ export const waitingListService = {
   // Entry operations
   async createEntry(entry: Omit<PuppyEntry, "id" | "status" | "rank">): Promise<ApiResponse<PuppyEntry>> {
     try {
+      const formattedEntry = {
+        waitingListId: entry.waitingListId,
+        ownerName: entry.ownerName,
+        puppyName: entry.puppyName,
+        serviceRequired: entry.serviceRequired,
+        arrivalTime: entry.arrivalTime
+      };
+
       const response = await fetch(`${BASE_URL}/entries`, {
         method: 'POST',
-        headers: getHeaders(),
-        credentials: 'include',
-        body: JSON.stringify(entry)
-      })
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(formattedEntry)
+      });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json()
-      return { data, error: null }
+      const data = await response.json();
+      return { data, error: null };
     } catch (error) {
-      console.error('Error creating entry:', error)
-      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
+      console.error('Error creating entry:', error);
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   },
 

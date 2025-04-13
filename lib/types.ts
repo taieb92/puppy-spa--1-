@@ -2,12 +2,13 @@ export type EntryStatus = "WAITING" | "COMPLETED"
 
 export interface PuppyEntry {
   id: number
-  puppyName: string
+  waitingListId: number
   ownerName: string
-  service: string
-  status: EntryStatus
-  requestedServiceDate: string
+  puppyName: string
+  serviceRequired: string
   arrivalTime: string
+  status: 'WAITING' | 'COMPLETED'
+  rank: number
 }
 
 export interface WaitingList {
