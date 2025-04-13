@@ -1,37 +1,43 @@
 "use client"
 
-import { useState } from "react"
+import { useState, FormEvent, ChangeEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { PuppyEntry } from "@/lib/types"
-import { waitingListService } from "@/lib/services/waiting-list"
 
 interface AddPuppyFormProps {
   onSubmit: (entry: Omit<PuppyEntry, "id" | "status" | "rank">) => Promise<void>
+  waitingListId: number
 }
 
-export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
+interface FormData {
+  puppyName: string
+  ownerName: string
+  serviceRequired: string
+  arrivalTime: string
+}
+
+export default function AddPuppyForm({ onSubmit, waitingListId }: AddPuppyFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     puppyName: "",
     ownerName: "",
     serviceRequired: "",
     arrivalTime: new Date().toISOString().split('T')[1].substring(0, 5)
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (isSubmitting) return
 
     try {
       setIsSubmitting(true)
       await onSubmit({
-        puppyName: formData.puppyName,
-        ownerName: formData.ownerName,
-        serviceRequired: formData.serviceRequired,
-        arrivalTime: formData.arrivalTime
+        ...formData,
+        waitingListId,
+        arrivalTime: `${new Date().toISOString().split('T')[0]}T${formData.arrivalTime}:00Z`
       })
       setFormData({
         puppyName: "",
@@ -47,6 +53,11 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
     }
   }
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target
+    setFormData(prev => ({ ...prev, [id]: value }))
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -55,7 +66,7 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
           <Input
             id="puppyName"
             value={formData.puppyName}
-            onChange={(e) => setFormData(prev => ({ ...prev, puppyName: e.target.value }))}
+            onChange={handleChange}
             required
             placeholder="Enter puppy name"
           />
@@ -65,7 +76,7 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
           <Input
             id="ownerName"
             value={formData.ownerName}
-            onChange={(e) => setFormData(prev => ({ ...prev, ownerName: e.target.value }))}
+            onChange={handleChange}
             required
             placeholder="Enter owner name"
           />
@@ -75,7 +86,7 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
           <Input
             id="serviceRequired"
             value={formData.serviceRequired}
-            onChange={(e) => setFormData(prev => ({ ...prev, serviceRequired: e.target.value }))}
+            onChange={handleChange}
             required
             placeholder="Enter service required"
           />
@@ -86,7 +97,7 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
             id="arrivalTime"
             type="time"
             value={formData.arrivalTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, arrivalTime: e.target.value }))}
+            onChange={handleChange}
             required
           />
         </div>

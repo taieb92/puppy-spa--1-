@@ -159,7 +159,7 @@ export default function Home() {
 
       {waitingList ? (
         <div className="space-y-8">
-          <AddPuppyForm onSubmit={handleAddPuppy} />
+          <AddPuppyForm onSubmit={handleAddPuppy} waitingListId={waitingList.id} />
           <PuppyList 
             entries={entries}
             onUpdateList={handleUpdateList}

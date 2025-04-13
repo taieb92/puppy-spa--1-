@@ -277,7 +277,7 @@ export default function PreviousDaysPage() {
 
               {showAddForm && (
                 <div className="mb-8">
-                  <AddPuppyForm onSubmit={handleAddPuppy} />
+                  <AddPuppyForm onSubmit={handleAddPuppy} waitingListId={list.id} />
                 </div>
               )}
 
