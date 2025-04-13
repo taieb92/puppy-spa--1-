@@ -17,7 +17,7 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
   const [formData, setFormData] = useState({
     puppyName: "",
     ownerName: "",
-    service: "",
+    serviceRequired: "",
     arrivalTime: new Date().toISOString().split('T')[1].substring(0, 5)
   })
 
@@ -30,14 +30,13 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
       await onSubmit({
         puppyName: formData.puppyName,
         ownerName: formData.ownerName,
-        service: formData.service,
-        requestedServiceDate: new Date().toISOString().split('T')[0],
+        serviceRequired: formData.serviceRequired,
         arrivalTime: formData.arrivalTime
       })
       setFormData({
         puppyName: "",
         ownerName: "",
-        service: "",
+        serviceRequired: "",
         arrivalTime: new Date().toISOString().split('T')[1].substring(0, 5)
       })
     } catch (error) {
@@ -72,11 +71,11 @@ export default function AddPuppyForm({ onSubmit }: AddPuppyFormProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="service">Service</Label>
+          <Label htmlFor="serviceRequired">Service Required</Label>
           <Input
-            id="service"
-            value={formData.service}
-            onChange={(e) => setFormData(prev => ({ ...prev, service: e.target.value }))}
+            id="serviceRequired"
+            value={formData.serviceRequired}
+            onChange={(e) => setFormData(prev => ({ ...prev, serviceRequired: e.target.value }))}
             required
             placeholder="Enter service required"
           />

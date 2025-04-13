@@ -59,13 +59,35 @@ export const waitingListService = {
   // Entry operations
   async createEntry(entry: Omit<PuppyEntry, "id" | "status" | "rank">): Promise<ApiResponse<PuppyEntry>> {
     try {
+      console.log('Raw entry data:', entry); // Debug log
+
+      // Validate serviceRequired
+      if (!entry.serviceRequired || typeof entry.serviceRequired !== 'string') {
+        console.error('Invalid serviceRequired:', entry.serviceRequired); // Debug log
+        throw new Error('Service required is mandatory and must be a string');
+      }
+
+      // Format arrivalTime to ISO 8601
+      let formattedArrivalTime: string;
+      try {
+        const date = new Date(entry.arrivalTime);
+        if (isNaN(date.getTime())) {
+          throw new Error('Invalid date format');
+        }
+        formattedArrivalTime = date.toISOString();
+      } catch (error) {
+        throw new Error('Invalid arrival time format. Must be a valid date string');
+      }
+
       const formattedEntry = {
         waitingListId: entry.waitingListId,
         ownerName: entry.ownerName,
         puppyName: entry.puppyName,
         serviceRequired: entry.serviceRequired,
-        arrivalTime: entry.arrivalTime
+        arrivalTime: formattedArrivalTime
       };
+
+      console.log('Formatted entry data:', formattedEntry); // Debug log
 
       const response = await fetch(`${BASE_URL}/entries`, {
         method: 'POST',
