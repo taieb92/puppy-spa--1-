@@ -1,183 +1,178 @@
 import type { PuppyEntry, WaitingList } from "@/lib/types"
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://159.89.31.47:3000"
 
 interface ApiResponse<T> {
-  data: T
-  error?: string
+  data: T | null
+  error: string | null
 }
+
+const getHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'Origin': typeof window !== 'undefined' ? window.location.origin : '',
+  'Referer': typeof window !== 'undefined' ? window.location.href : '',
+})
 
 export const waitingListService = {
   // List operations
-  createList: async (date: string): Promise<ApiResponse<WaitingList>> => {
+  async createList(date: string): Promise<ApiResponse<WaitingList>> {
     try {
       const response = await fetch(`${BASE_URL}/waiting-lists`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ date }),
+        method: 'POST',
+        headers: getHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ date })
       })
-
+      
       if (!response.ok) {
-        throw new Error(`Failed to create list: ${response.statusText}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-
+      
       const data = await response.json()
-      return { data }
+      return { data, error: null }
     } catch (error) {
-      return { 
-        data: {} as WaitingList, 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }
+      console.error('Error creating waiting list:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 
-  getListByDate: async (date: string): Promise<ApiResponse<WaitingList>> => {
+  async getListByDate(date: string): Promise<ApiResponse<WaitingList>> {
     try {
-      const response = await fetch(`${BASE_URL}/waiting-lists/date/${date}`)
-
+      const response = await fetch(`${BASE_URL}/waiting-lists/date/${date}`, {
+        headers: getHeaders(),
+        credentials: 'include'
+      })
+      
       if (!response.ok) {
-        throw new Error(`Failed to get list: ${response.statusText}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-
+      
       const data = await response.json()
-      return { data }
+      return { data, error: null }
     } catch (error) {
-      return { 
-        data: {} as WaitingList, 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }
+      console.error('Error fetching waiting list:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 
   // Entry operations
-  createEntry: async (entry: Omit<PuppyEntry, "id" | "status" | "rank"> & { waitingListId: number }): Promise<ApiResponse<PuppyEntry>> => {
+  async createEntry(entry: Omit<PuppyEntry, "id" | "status" | "rank">): Promise<ApiResponse<PuppyEntry>> {
     try {
       const response = await fetch(`${BASE_URL}/entries`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          waitingListId: entry.waitingListId,
-          ownerName: entry.ownerName,
-          puppyName: entry.puppyName,
-          serviceRequired: entry.service,
-          arrivalTime: new Date(`${entry.requestedServiceDate}T${entry.arrivalTime}`).toISOString()
-        }),
+        method: 'POST',
+        headers: getHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(entry)
       })
-
+      
       if (!response.ok) {
-        throw new Error(`Failed to create entry: ${response.statusText}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-
+      
       const data = await response.json()
-      return { data }
+      return { data, error: null }
     } catch (error) {
-      return { 
-        data: {} as PuppyEntry, 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }
+      console.error('Error creating entry:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 
-  getEntriesByListId: async (listId: number): Promise<ApiResponse<PuppyEntry[]>> => {
+  async getEntriesByListId(listId: number): Promise<ApiResponse<PuppyEntry[]>> {
     try {
-      const response = await fetch(`${BASE_URL}/entries/list?listId=${listId}`)
-
+      const response = await fetch(`${BASE_URL}/entries/list?listId=${listId}`, {
+        headers: getHeaders(),
+        credentials: 'include'
+      })
+      
       if (!response.ok) {
-        throw new Error(`Failed to get entries: ${response.statusText}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-
+      
       const data = await response.json()
-      return { data }
+      return { data, error: null }
     } catch (error) {
-      return { 
-        data: [], 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }
+      console.error('Error fetching entries:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 
-  updateEntryStatus: async (entryId: number, status: "WAITING" | "COMPLETED"): Promise<ApiResponse<PuppyEntry>> => {
+  async updateEntryStatus(entryId: number, status: "WAITING" | "COMPLETED"): Promise<ApiResponse<void>> {
     try {
       const response = await fetch(`${BASE_URL}/entries/${entryId}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: status }),
+        method: 'PUT',
+        headers: getHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ status })
       })
-
+      
       if (!response.ok) {
-        throw new Error(`Failed to update entry status: ${response.statusText}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-
-      const data = await response.json()
-      return { data }
+      
+      return { data: null, error: null }
     } catch (error) {
-      return { 
-        data: {} as PuppyEntry, 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }
+      console.error('Error updating entry status:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 
-  updateEntryRank: async (entryId: number, rank: number): Promise<ApiResponse<PuppyEntry>> => {
+  async updateEntryRank(entryId: number, rank: number): Promise<ApiResponse<void>> {
     try {
       const response = await fetch(`${BASE_URL}/entries/${entryId}/rank`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rank }),
+        method: 'PUT',
+        headers: getHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ rank })
       })
-
+      
       if (!response.ok) {
-        throw new Error(`Failed to update entry rank: ${response.statusText}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-
-      const data = await response.json()
-      return { data }
+      
+      return { data: null, error: null }
     } catch (error) {
-      return { 
-        data: {} as PuppyEntry, 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }
+      console.error('Error updating entry rank:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 
   // Search operations
-  searchEntries: async (query: string): Promise<ApiResponse<PuppyEntry[]>> => {
+  async searchEntries(query: string): Promise<ApiResponse<PuppyEntry[]>> {
     try {
-      const response = await fetch(`${BASE_URL}/entries/list?q=${encodeURIComponent(query)}`)
-
+      const response = await fetch(`${BASE_URL}/entries/list?q=${encodeURIComponent(query)}`, {
+        headers: getHeaders(),
+        credentials: 'include'
+      })
+      
       if (!response.ok) {
-        throw new Error(`Failed to search entries: ${response.statusText}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-
-      const data = await response.json()
-      return { data }
-    } catch (error) {
-      return { 
-        data: [], 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      }
-    }
-  },
-
-  async getListsByMonth(month: string): Promise<{ data: { month: string; waitingLists: { id: number; date: string; maxCapacity: number; currentCapacity: number }[] } | null; error: string | null }> {
-    try {
-      const response = await fetch(`${BASE_URL}/waiting-lists/month/${month}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch waiting lists by month')
-      }
+      
       const data = await response.json()
       return { data, error: null }
     } catch (error) {
-      console.error('Error fetching waiting lists by month:', error)
-      return { data: null, error: error instanceof Error ? error.message : 'Failed to fetch waiting lists by month' }
+      console.error('Error searching entries:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  },
+
+  async getListsByMonth(month: string): Promise<ApiResponse<{ month: string; waitingLists: WaitingList[] }>> {
+    try {
+      const response = await fetch(`${BASE_URL}/waiting-lists/month/${month}`, {
+        headers: getHeaders(),
+        credentials: 'include'
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error fetching lists by month:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' }
     }
   },
 } 
